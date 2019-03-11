@@ -1,7 +1,7 @@
 # Team
 
-*Frank Ridder: 9050320194
-*Carlos Trejo: 9049420195
+*Frank Ridder: 9050320194   
+*Carlos Trejo: 9049420195   
 
 
 # How to submit your project output for each stage
