@@ -22,3 +22,7 @@
 hs_err_pid*
 
 /target/
+
+\.idea/
+
+2016000000\.iml
