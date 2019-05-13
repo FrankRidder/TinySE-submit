@@ -25,4 +25,18 @@ hs_err_pid*
 
 \.idea/
 
+/target/test-classes/
+
 2016000000\.iml
+
+tmp/
+
+/target/surefire-reports/
+
+src/test/resources/test-10000000\.data
+
+target/maven-status/
+
+target/classes/
+
+src/main/java/edu/hanyang/submit/TinySEBPlusTree\.java
