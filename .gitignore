@@ -40,3 +40,7 @@ target/maven-status/
 target/classes/
 
 src/main/java/edu/hanyang/submit/TinySEBPlusTree\.java
+
+lib/tinyse-2019\.stage_1\.build_1\.jar
+
+src/test/resources/result-10000000\.data

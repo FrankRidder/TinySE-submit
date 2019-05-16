@@ -14,47 +14,41 @@ public class TinySEExternalSort implements ExternalSort {
     private int NFILES;
     private int NBLOCKS;
     private int BLOCKSIZE;
+    private int BUFFERSIZE = 1024;
 
     public void sort(String infile, String outfile, String tmpDir, int blocksize, int nblocks) throws IOException {
 
-        int dataPerRun = (((blocksize / Integer.SIZE) * (nblocks - 2)) / 3);
-
-        int maxBitsPerRun = dataPerRun / 8;
-
-        NBLOCKS = nblocks;
         BLOCKSIZE = blocksize;
-        NFILES = 1;
+        NBLOCKS = nblocks;
 
-        DataInputStream is = DiskIO.open_input_run(infile, BLOCKSIZE);
-
+        int nElement = (((BLOCKSIZE / Integer.SIZE) * (NBLOCKS - 2)) / 3) / 8;
         ArrayList<MutableTriple<Integer, Integer, Integer>> data = new ArrayList<>();
-        MutableTriple<Integer, Integer, Integer> tmp = new MutableTriple<>();
 
+        DataInputStream input = DiskIO.open_input_run(infile, BLOCKSIZE);
 
-        while (is.available() != 0) {
-            if ((is.available() / (3 * Integer.SIZE)) > maxBitsPerRun) {
-//                DiskIO.read_array(is, dataPerRun, data);// java.lang.IndexOutOfBoundsException: Index 0 out of bounds for length 0
-                for (int i = 0; i < dataPerRun; i++) {
-                    tmp.setLeft(is.readInt());
-                    tmp.setMiddle(is.readInt());
-                    tmp.setRight(is.readInt());
-
+        while (input.available() > 0) {
+            for (int i = 0; i < nElement; i++) {
+                MutableTriple<Integer, Integer, Integer> tmp = new MutableTriple<>();
+                try {
+                    tmp.setLeft(input.readInt());
+                    tmp.setMiddle(input.readInt());
+                    tmp.setRight(input.readInt());
                     data.add(tmp);
-                }
-            } else {
-                //               DiskIO.read_array(is, (is.available() / (3 * Integer.SIZE)), data);// java.lang.IndexOutOfBoundsException: Index 0 out of bounds for length 0
-                while (is.available() > 0) {
-                    tmp.setLeft(is.readInt());
-                    tmp.setMiddle(is.readInt());
-                    tmp.setRight(is.readInt());
-
-                    data.add(tmp);
+                } catch (EOFException e) {
+                    break;
                 }
             }
+            Collections.sort(data);
 
-            data.sort(new TripleComp());
+            String tmpfile = tmpDir + "/run_" + 0 + "/" + NFILES + ".data";
 
-            File file = new File(tmpDir + "/" + "tmp" + NFILES + ".data");
+            File file = new File(tmpDir);
+
+            if (!file.exists()) {
+                file.mkdir();
+            }
+
+            file = new File(tmpfile);
 
             if (!file.getParentFile().exists()) {
                 file.getParentFile().mkdir();
@@ -62,169 +56,147 @@ public class TinySEExternalSort implements ExternalSort {
 
             file.createNewFile();
 
-            DataOutputStream os = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file), BLOCKSIZE));
-
-            //DiskIO.append_arr(os, data, data.size());
-            for (MutableTriple<Integer, Integer, Integer> datum : data) {
-                os.writeInt(datum.getLeft());
-                os.writeInt(datum.getMiddle());
-                os.writeInt(datum.getRight());
-            }
-
-            os.flush();
-
-            data.clear();
+            DataOutputStream output = DiskIO.open_output_run(file.getAbsolutePath(), BLOCKSIZE);
             NFILES++;
-            os.close();
+
+            for (MutableTriple<Integer, Integer, Integer> temp : data) {
+                output.writeInt(temp.getLeft());
+                output.writeInt(temp.getMiddle());
+                output.writeInt(temp.getRight());
+            }
+            data.clear();
+            output.close();
+
+
         }
 
-        _externalMergeSort(tmpDir, outfile);
+        input.close();
+
+        _externalMergeSort(tmpDir, outfile, 1);
     }
 
 
-    private void _externalMergeSort(String tmpDir, String outputFile) throws IOException {
-        File[] fileArr = (new File(tmpDir + "/")).listFiles();
+    private void _externalMergeSort(String tmpDir, String outputFile, int step) throws IOException {
+        String prev_run = tmpDir + "/run_" + (step - 1);
+        File[] fileArr = new File(prev_run).listFiles();
         ArrayList<DataInputStream> files = new ArrayList<>();
+        NFILES = 0;
 
-        if (fileArr.length < (NBLOCKS - 1)) {
+        int n_way_merge = NBLOCKS > 64 ? 64 : NBLOCKS;
+        if (fileArr.length <= n_way_merge) {
+
             for (File f : fileArr) {
-                files.add(DiskIO.open_input_run(f.getAbsolutePath(), BLOCKSIZE));
+                DataInputStream dos = DiskIO.open_input_run(f.getAbsolutePath(), BUFFERSIZE);
+                files.add(dos);
             }
-
             _mergeSort(files, outputFile);
-
             for (File f : fileArr) {
                 f.delete();
             }
-            files.clear();
 
         } else {
+
             for (File f : fileArr) {
+                DataInputStream dos = DiskIO.open_input_run(f.getAbsolutePath(), BUFFERSIZE);
+                files.add(dos);
 
-                files.add(DiskIO.open_input_run(f.getAbsolutePath(), BLOCKSIZE));
-
-                if (files.size() == (NBLOCKS - 1)) {
-                    String tmpfile = (tmpDir + "/" + "tmp" + NFILES + ".data");
-
+                if (files.size() == n_way_merge) {
+                    String tmpfile = tmpDir + "/run_" + step + "/" + NFILES + ".data";
+                    File file = new File(tmpfile);
+                    if (!file.getParentFile().exists()) {
+                        file.getParentFile().mkdir();
+                    }
+                    file.createNewFile();
                     NFILES++;
-                    _mergeSort(files, tmpfile);
+                    _mergeSort(files, file.getAbsolutePath());
+
                     files.clear();
 
                 }
             }
-            if (files.size() != 0) {
-                String tmpfile = (tmpDir + "/" + "tmp" + NFILES + ".data");
-
+            if (files.size() > 0) {
+                String tmpfile = tmpDir + "/run_" + step + "/" + NFILES + ".data";
+                File file = new File(tmpfile);
+                if (!file.getParentFile().exists()) {
+                    file.getParentFile().mkdir();
+                }
+                file.createNewFile();
                 NFILES++;
-                _mergeSort(files, tmpfile);
+                _mergeSort(files, file.getAbsolutePath());
                 files.clear();
             }
             for (File f : fileArr) {
                 f.delete();
             }
-            files.clear();
-            _externalMergeSort(tmpDir, outputFile);
-        }
 
+            _externalMergeSort(tmpDir, outputFile, step + 1);
+        }
 
     }
 
     private void _mergeSort(ArrayList<DataInputStream> files, String outputString) throws IOException {
-        PriorityQueue<DataManager> queue = new PriorityQueue<>();
+        DataOutputStream output = DiskIO.open_output_run(outputString, BUFFERSIZE);
 
-        ArrayList<MutableTriple<Integer, Integer, Integer>> output = new ArrayList<>();
+        PriorityQueue<DataManager> queue = new PriorityQueue<>(new DataComp());
 
-        DataManager dm;
+        for (DataInputStream f : files) {
+            try {
+                DataManager dm = new DataManager(f.readInt(), f.readInt(), f.readInt(), files.indexOf(f));
+                queue.add(dm);
 
-        File outputFile = new File(outputString);
-
-        outputFile.createNewFile();
-
-        DataOutputStream os = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile, true), BLOCKSIZE));
-
-        for (DataInputStream file : files) {
-            queue.add(new DataManager(file));
+            } catch (EOFException e) {
+                continue;
+            }
         }
-        dm = queue.poll();
+
         while (queue.size() != 0) {
-            if (dm.isEmpty()) {
-                dm = queue.poll();
+            try {
+                DataManager dm = queue.poll();
+                MutableTriple<Integer, Integer, Integer> tmp = dm.getTuple();
+
+                output.writeInt(tmp.getLeft());
+                output.writeInt(tmp.getMiddle());
+                output.writeInt(tmp.getRight());
+
+                output.flush();
+
+                dm.setTuple(files.get(dm.index).readInt(), files.get(dm.index).readInt(), files.get(dm.index).readInt());
+
+                queue.add(dm);
+
+            } catch (EOFException e) {
+                continue;
             }
-
-            output.add(dm.getTuple());
-            if (output.size() == files.size()) {
-                output.sort(new TripleComp());
-
-                os.writeInt(output.get(0).getLeft());
-                os.writeInt(output.get(0).getMiddle());
-                os.writeInt(output.get(0).getRight());
-
-                os.flush();
-                output.remove(0);
-            }
-
         }
-        if (output.size() > 0) {
-            output.sort(new TripleComp());
-            for (MutableTriple<Integer, Integer, Integer> MutableTriple : output) {
-                os.writeInt(MutableTriple.getLeft());
-                os.writeInt(MutableTriple.getMiddle());
-                os.writeInt(MutableTriple.getRight());
-            }
-            os.flush();
-        }
-        os.close();
+        output.close();
     }
 
-    private class TripleComp implements Comparator<MutableTriple<Integer, Integer, Integer>> {
+    private class DataComp implements Comparator<DataManager> {
 
         @Override
-        public int compare(MutableTriple<Integer, Integer, Integer> o1, MutableTriple<Integer, Integer, Integer> o2) {
-            return o1.compareTo(o2);
+        public int compare(DataManager o1, DataManager o2) {
+            return o1.tuple.compareTo(o2.tuple);
         }
     }
 
+    private class DataManager {
 
-    private class DataManager implements Comparable<DataManager> {
-        DataInputStream input;
-        private MutableTriple<Integer, Integer, Integer> triple;
+        MutableTriple<Integer, Integer, Integer> tuple;
+        int index;
 
-        private DataManager(DataInputStream is) throws IOException {
-            this.input = is;
-            this.triple = new MutableTriple<>();
-
-            if (this.input.available() > 0) {
-                this.triple.setLeft(this.input.readInt());
-                this.triple.setMiddle(this.input.readInt());
-                this.triple.setRight(this.input.readInt());
-            } else {
-                this.triple = null;
-            }
+        private DataManager(int left, int middle, int right, int index) {
+            tuple = new MutableTriple<>(left, middle, right);
+            this.index = index;
         }
 
-        @Override
-        public int compareTo(DataManager m2) {
-            return this.triple.compareTo(m2.triple);
+        private void setTuple(int left, int middle, int right) {
+            tuple.setLeft(left);
+            tuple.setMiddle(middle);
+            tuple.setRight(right);
         }
 
-        private MutableTriple<Integer, Integer, Integer> getTuple() throws IOException {
-            MutableTriple<Integer, Integer, Integer> temp = this.triple;
-            getNext();
-            return temp;
-        }
-
-        private boolean isEmpty() {
-            return this.triple == null;
-        }
-
-        private void getNext() throws IOException {
-            if (this.input.available() > 0) {
-                this.triple.setLeft(this.input.readInt());
-                this.triple.setMiddle(this.input.readInt());
-                this.triple.setRight(this.input.readInt());
-            } else {
-                this.triple = null;
-            }
+        private MutableTriple<Integer, Integer, Integer> getTuple() {
+            return this.tuple;
         }
     }
 }
