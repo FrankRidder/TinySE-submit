@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" name="edu.hanyang.ExternalSortTest" time="112.837" tests="1" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" name="edu.hanyang.ExternalSortTest" time="125.137" tests="1" errors="0" skipped="0" failures="0">
   <properties>
     <property name="sun.desktop" value="windows"/>
     <property name="awt.toolkit" value="sun.awt.windows.WToolkit"/>
@@ -17,7 +17,7 @@
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="user.country" value="GB"/>
     <property name="sun.boot.library.path" value="C:\Program Files\Java\jdk-11.0.2\bin"/>
-    <property name="sun.java.command" value="C:\Users\frrid\AppData\Local\Temp\surefire17888870493419425105\surefirebooter16002188793026134418.jar C:\Users\frrid\AppData\Local\Temp\surefire17888870493419425105 2019-05-17T02-10-35_376-jvmRun1 surefire12652325601734625368tmp surefire_04727773585489386159tmp"/>
+    <property name="sun.java.command" value="C:\Users\frrid\AppData\Local\Temp\surefire1905611529982397599\surefirebooter1361254867978369954.jar C:\Users\frrid\AppData\Local\Temp\surefire1905611529982397599 2019-05-23T10-52-12_401-jvmRun1 surefire14962213851079871952tmp surefire_012411682479256024747tmp"/>
     <property name="jdk.debug" value="release"/>
     <property name="surefire.test.class.path" value="C:\Users\frrid\Documents\TinySE-submit\target\test-classes;C:\Users\frrid\Documents\TinySE-submit\target\classes;C:\Users\frrid\.m2\repository\org\apache\lucene\lucene-analyzers-common\7.2.1\lucene-analyzers-common-7.2.1.jar;C:\Users\frrid\.m2\repository\org\apache\lucene\lucene-core\7.2.1\lucene-core-7.2.1.jar;C:\Users\frrid\.m2\repository\org\apache\commons\commons-lang3\3.7\commons-lang3-3.7.jar;C:\Users\frrid\Documents\TinySE-submit\lib\tinyse-2019.stage_1.build_1.jar;C:\Users\frrid\.m2\repository\junit\junit\4.12\junit-4.12.jar;C:\Users\frrid\.m2\repository\org\hamcrest\hamcrest-core\1.3\hamcrest-core-1.3.jar;"/>
     <property name="sun.cpu.endian" value="little"/>
@@ -33,7 +33,7 @@
     <property name="java.specification.name" value="Java Platform API Specification"/>
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
     <property name="java.awt.graphicsenv" value="sun.awt.Win32GraphicsEnvironment"/>
-    <property name="surefire.real.class.path" value="C:\Users\frrid\AppData\Local\Temp\surefire17888870493419425105\surefirebooter16002188793026134418.jar"/>
+    <property name="surefire.real.class.path" value="C:\Users\frrid\AppData\Local\Temp\surefire1905611529982397599\surefirebooter1361254867978369954.jar"/>
     <property name="user.script" value=""/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
     <property name="java.runtime.version" value="11.0.2+9-LTS"/>
@@ -61,5 +61,5 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="55.0"/>
   </properties>
-  <testcase name="TestSort" classname="edu.hanyang.ExternalSortTest" time="112.772"/>
+  <testcase name="TestSort" classname="edu.hanyang.ExternalSortTest" time="125.137"/>
 </testsuite>

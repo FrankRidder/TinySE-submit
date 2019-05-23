@@ -13,18 +13,16 @@ public class TinySEExternalSort implements ExternalSort {
 
     private int NFILES;
     private int NBLOCKS;
-    private int BLOCKSIZE;
     private int BUFFERSIZE = 1024;
 
     public void sort(String infile, String outfile, String tmpDir, int blocksize, int nblocks) throws IOException {
 
-        BLOCKSIZE = blocksize;
         NBLOCKS = nblocks;
 
-        int nElement = (((BLOCKSIZE / Integer.SIZE) * (NBLOCKS - 2)) / 3) / 8;
+        int nElement = (((blocksize / Integer.SIZE) * (NBLOCKS - 2)) / 3) / 8;
         ArrayList<MutableTriple<Integer, Integer, Integer>> data = new ArrayList<>();
 
-        DataInputStream input = DiskIO.open_input_run(infile, BLOCKSIZE);
+        DataInputStream input = DiskIO.open_input_run(infile, blocksize);
 
         while (input.available() > 0) {
             for (int i = 0; i < nElement; i++) {
@@ -56,7 +54,7 @@ public class TinySEExternalSort implements ExternalSort {
 
             file.createNewFile();
 
-            DataOutputStream output = DiskIO.open_output_run(file.getAbsolutePath(), BLOCKSIZE);
+            DataOutputStream output = DiskIO.open_output_run(file.getAbsolutePath(), blocksize);
             NFILES++;
 
             for (MutableTriple<Integer, Integer, Integer> temp : data) {

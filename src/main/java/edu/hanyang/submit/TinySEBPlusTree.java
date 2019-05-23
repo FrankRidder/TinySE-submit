@@ -2,15 +2,17 @@ package edu.hanyang.submit;
 
 import edu.hanyang.indexer.BPlusTree;
 
-import java.io.EOFException;
-import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
+
+import edu.hanyang.utils.DiskIO;
+
 import java.util.Queue;
+
+import static junit.framework.TestCase.assertEquals;
 
 public class TinySEBPlusTree implements BPlusTree {
 
@@ -69,7 +71,7 @@ public class TinySEBPlusTree implements BPlusTree {
     public void insert(int key, int val) throws IOException {
         Block currentBlock = root;
         if (currentBlock.type == 1) {
-            if(currentBlock.n_keys == 0){
+            if (currentBlock.n_keys == 0) {
                 currentBlock.keys.add(0, key);
                 currentBlock.values.add(0, val);
                 currentBlock.n_keys++;
@@ -107,7 +109,7 @@ public class TinySEBPlusTree implements BPlusTree {
                     if (key < currentBlock.keys.get(0)) {
                         currentBlock = currentBlock.children.get(0);
                     } else if (key > currentBlock.keys.get(currentBlock.n_keys - 1)) {
-                        currentBlock = currentBlock.children.get(currentBlock.n_keys - 1);
+                        currentBlock = currentBlock.children.get(currentBlock.n_keys);
                     } else {
                         for (int i = 0; i < currentBlock.n_keys - 1; i++) {
                             if (key > currentBlock.keys.get(i) && key < currentBlock.keys.get(i + 1)) {
@@ -115,8 +117,7 @@ public class TinySEBPlusTree implements BPlusTree {
                             }
                         }
                     }
-                }
-                if (currentBlock.type == 1) {
+                } else {
                     if (key < currentBlock.keys.get(0)) {
                         currentBlock.keys.add(0, key);
                         currentBlock.values.add(0, val);
@@ -124,13 +125,15 @@ public class TinySEBPlusTree implements BPlusTree {
                         if (currentBlock.n_keys > maxKeys) {
                             split(currentBlock);
                         }
+                        break;
                     } else if (key > currentBlock.keys.get(currentBlock.n_keys - 1)) {
-                        currentBlock.keys.add(currentBlock.n_keys, key);
-                        currentBlock.values.add(currentBlock.n_keys, val);
+                        currentBlock.keys.add(currentBlock.n_keys - 1, key);
+                        currentBlock.values.add(currentBlock.n_keys - 1, val);
                         currentBlock.n_keys++;
                         if (currentBlock.n_keys > maxKeys) {
                             split(currentBlock);
                         }
+                        break;
                     } else {
                         for (int i = 0; i < currentBlock.n_keys - 1; i++) {
                             if (key > currentBlock.keys.get(i) && key < currentBlock.keys.get(i + 1)) {
@@ -143,8 +146,8 @@ public class TinySEBPlusTree implements BPlusTree {
                         if (currentBlock.n_keys > maxKeys) {
                             split(currentBlock);
                         }
+                        break;
                     }
-                    break;
                 }
             }
         }
@@ -214,7 +217,7 @@ public class TinySEBPlusTree implements BPlusTree {
                 parent_node = nodes.poll();
                 for (int i = 0; i < numberOfChildren; i++) {
 
-                    new_node = new Block(0, 0, null, null, 0, null, null);
+                    new_node = new Block(0, 1, null, null, 0, null, null);
 
                     if (save.readInt() == 0) {
                         new_node.type = 0;
@@ -228,8 +231,8 @@ public class TinySEBPlusTree implements BPlusTree {
                         currentKey = save.readInt();
                         currentValue = save.readInt();
                         if (currentKey > 0 && currentValue > 0) {
-                            new_node.keys.add(i, currentKey);
-                            new_node.values.add(i, currentValue);
+                            new_node.keys.add(j, currentKey);
+                            new_node.values.add(j, currentValue);
                             new_node.n_keys++;
                         } else if (currentKey > 0 && currentValue == 0) {
                             new_node.keys.add(i, currentKey);
@@ -317,7 +320,7 @@ public class TinySEBPlusTree implements BPlusTree {
         int new_n_keys;
 
         if (node.parent == null) {
-            parent = new Block(0, 0, null, null, 0, null, null);
+            parent = new Block(0, 1, null, null, 0, null, null);
             root = parent;
         } else {
             parent = node.parent;
@@ -339,7 +342,7 @@ public class TinySEBPlusTree implements BPlusTree {
             left.child_pointer = node.child_pointer;
             left.parent = parent;
 
-            for (int i = new_n_keys; i < node.n_keys; i++) {
+            for (int i = new_n_keys; i < node.n_keys -1; i++) {
                 right.keys.add(node.keys.get(i));
                 right.values.add(node.values.get(i));
                 right.n_keys++;
@@ -425,5 +428,82 @@ public class TinySEBPlusTree implements BPlusTree {
             }
         }
 
+    }
+
+    private void show(Block root) {
+        if (root.type == 1) {
+            for (int i = 0; i < root.n_keys; i++) {
+                System.out.println(root.keys.get(i));
+            }
+            System.out.println("@" + root.n_keys + " " + root.child_pointer);
+        } else {
+            for (int i = 0; i < root.children.size(); i++) {
+                show(root.children.get(i));
+            }
+        }
+    }
+
+    public static void main(String[] args) throws IOException {
+        String metapath = "./tmp/bplustree.meta";
+        String savepath = "./tmp/bplustree.tree";
+        int blocksize = 52;
+        int nblocks = 10;
+
+        File treefile = new File(savepath);
+        if (treefile.exists()) {
+            if (!treefile.delete()) {
+                System.err.println("error: cannot remove files");
+                System.exit(1);
+            }
+        }
+
+        TinySEBPlusTree tree = new TinySEBPlusTree();
+        tree.open(metapath, savepath, blocksize, nblocks);
+
+
+        DataInputStream in = DiskIO.open_input_run("./tmp/treetest-15000000.data", 1024);
+
+        while (in.available() != 0) {
+            tree.insert(in.readInt(), in.readInt());
+        }
+        tree.insert(5, 10);
+        tree.insert(6, 15);
+        tree.insert(4, 20);
+        tree.insert(7, 1);
+        tree.insert(8, 5);
+        tree.insert(17, 7);
+        tree.insert(30, 8);
+        tree.insert(1, 8);
+        tree.insert(58, 1);
+        tree.insert(25, 8);
+        tree.insert(96, 32);
+        tree.insert(21, 8);
+        tree.insert(9, 98);
+        tree.insert(57, 54);
+        tree.insert(157, 54);
+        tree.insert(247, 54);
+        tree.insert(357, 254);
+        tree.insert(557, 54);
+        tree.show(tree.root);
+
+//        assertEquals(tree.search(5), 10);
+//        assertEquals(tree.search(6), 15);
+//        assertEquals(tree.search(4), 20);
+//        assertEquals(tree.search(7), 1);
+//        assertEquals(tree.search(8), 5);
+//        assertEquals(tree.search(17), 7);
+//        assertEquals(tree.search(30), 8);
+//        assertEquals(tree.search(1), 8);
+//        assertEquals(tree.search(58), 1);
+//        assertEquals(tree.search(25), 8);
+//        assertEquals(tree.search(96), 32);
+//        assertEquals(tree.search(21), 8);
+//        assertEquals(tree.search(9), 98);
+//        assertEquals(tree.search(57), 54);
+//        assertEquals(tree.search(157), 54);
+//        assertEquals(tree.search(247), 54);
+//        assertEquals(tree.search(357), 254);
+//        assertEquals(tree.search(557), 54);
+        tree.close();
     }
 }
