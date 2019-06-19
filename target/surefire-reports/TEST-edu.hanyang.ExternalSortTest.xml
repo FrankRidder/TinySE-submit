@@ -17,7 +17,7 @@
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="user.country" value="GB"/>
     <property name="sun.boot.library.path" value="C:\Program Files\Java\jdk-11.0.2\bin"/>
-    <property name="sun.java.command" value="C:\Users\frrid\AppData\Local\Temp\surefire15118195211200472407\surefirebooter667902815812332643.jar C:\Users\frrid\AppData\Local\Temp\surefire15118195211200472407 2019-06-15T01-34-10_191-jvmRun1 surefire4588629518415832527tmp surefire_014537484886191146609tmp"/>
+    <property name="sun.java.command" value="C:\Users\frrid\AppData\Local\Temp\surefire16585653292002757172\surefirebooter11536003866327850451.jar C:\Users\frrid\AppData\Local\Temp\surefire16585653292002757172 2019-06-19T17-01-32_224-jvmRun1 surefire13309452171396498925tmp surefire_018220481560095683278tmp"/>
     <property name="jdk.debug" value="release"/>
     <property name="surefire.test.class.path" value="C:\Users\frrid\Documents\TinySE-submit\target\test-classes;C:\Users\frrid\Documents\TinySE-submit\target\classes;C:\Users\frrid\.m2\repository\org\apache\lucene\lucene-analyzers-common\7.2.1\lucene-analyzers-common-7.2.1.jar;C:\Users\frrid\.m2\repository\org\apache\lucene\lucene-core\7.2.1\lucene-core-7.2.1.jar;C:\Users\frrid\.m2\repository\org\apache\commons\commons-lang3\3.7\commons-lang3-3.7.jar;C:\Users\frrid\Documents\TinySE-submit\lib\tinyse-2019.stage_1.build_1.jar;C:\Users\frrid\.m2\repository\junit\junit\4.12\junit-4.12.jar;C:\Users\frrid\.m2\repository\org\hamcrest\hamcrest-core\1.3\hamcrest-core-1.3.jar;"/>
     <property name="sun.cpu.endian" value="little"/>
@@ -33,7 +33,7 @@
     <property name="java.specification.name" value="Java Platform API Specification"/>
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
     <property name="java.awt.graphicsenv" value="sun.awt.Win32GraphicsEnvironment"/>
-    <property name="surefire.real.class.path" value="C:\Users\frrid\AppData\Local\Temp\surefire15118195211200472407\surefirebooter667902815812332643.jar"/>
+    <property name="surefire.real.class.path" value="C:\Users\frrid\AppData\Local\Temp\surefire16585653292002757172\surefirebooter11536003866327850451.jar"/>
     <property name="user.script" value=""/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
     <property name="java.runtime.version" value="11.0.2+9-LTS"/>

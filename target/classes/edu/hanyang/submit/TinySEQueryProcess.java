@@ -32,7 +32,7 @@ public class TinySEQueryProcess implements QueryProcess {
             document1 = doc1.get_docid();
             document2 = doc2.get_docid();
 
-            if (document1 < document2){
+            if (document1 < document2) {
 
                 doc1.go_next();
 
@@ -109,6 +109,33 @@ public class TinySEQueryProcess implements QueryProcess {
         String[] data = query.split(" ");
 
         for (String str : data) {
+            if (str.length() == 1 && str.charAt(0) == '"') {
+                if (!in_phase) {
+                    in_phase = true;
+                    shift = 0;
+                } else {
+                    in_phase = false;
+                    op_rand = tree.new QueryPlanNode();
+                    op_rand.type = NODE_TYPE.OP_REMOVE_POS;
+                    op_rand.left = queryPlanNodes.get(queryPlanNodes.size() - 1);
+                    queryPlanNodes.remove(queryPlanNodes.size() - 1);
+
+                    if (queryPlanNodes.isEmpty()) {
+                        queryPlanNodes.add(op_rand);
+                    } else {
+                        planNode = tree.new QueryPlanNode();
+                        planNode.type = NODE_TYPE.OP_AND;
+                        planNode.left = queryPlanNodes.get(queryPlanNodes.size() - 1);
+                        queryPlanNodes.remove(queryPlanNodes.size() - 1);
+                        planNode.right = planNode;
+                        queryPlanNodes.add(planNode);
+
+                    }
+
+                }
+                continue;
+            }
+
             if (str.charAt(0) == '"') {
                 in_phase = true;
                 System.out.println("phase on");

@@ -118,7 +118,7 @@ public class QueryProcessTest {
 		dc.go_next();
 		assertEquals(dc.is_eol(), true);
 
-		query = "\"3 4\" 7";
+		query = "\"3 4 \" 7";
 		tree = qp.parse_query(query, stat);
 
 		dc = executeQuery(tree.root);
